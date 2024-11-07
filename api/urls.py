@@ -1,0 +1,1 @@
+# API Speccific url patterns goes here (eg. API Root, API status)
