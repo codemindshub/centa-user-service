@@ -1,5 +1,6 @@
-# centa-user-service
-Manages user authentication, authorisation, and profile information within the Centa system, supporting secure access control.
+# Centa User Management Service
+
+The Center UMS is a standalone service part of the microservices that powers the Centa Inventory Management System `(CENTA IMS)`. It manages user authentication, authorisation, and profile information within the Centa system, supporting secure access control using Role Based Access Control (RBAC).
 
 
 ## Technologies Used
@@ -47,7 +48,7 @@ To install and run ICenta User Management Service locally, follow these steps:
 		```text
 		SECRET_KEY=<put secret key here>
 		```
-		
+
 5. **Run the migrations**:
 
    ```bash
