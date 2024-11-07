@@ -8,6 +8,6 @@ celery==5.4.0
 django-celery-beat==2.7.0
 redis==5.0.8
 PyJWT==2.8.0
-Werkzeug==2.1.1
+Werkzeug==3.0.6
 xhtml2pdf==0.2.16
 pyvenv==0.2.2
