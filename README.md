@@ -25,7 +25,7 @@ To install and run ICenta User Management Service locally, follow these steps:
 
 2. **Clone the repository**:
 
-	*** SSH ***
+	***SSH***
    ```bash
    git clone git@github.com:codemindshub/centa_user_service.git
    cd centa_user_service
