@@ -1,7 +1,9 @@
 # Centa User Management Service
 
-The Center UMS is a standalone service part of the microservices that powers the Centa Inventory Management System `(CENTA IMS)`. It manages user authentication, authorisation, and profile information within the Centa system, supporting secure access control using Role Based Access Control (RBAC).
-
+The Center UMS is a standalone service part of the microservices that powers
+the Centa Inventory Management System `(CENTA IMS)`. It manages user
+authentication, authorisation, and profile information within the Centa system,
+supporting secure access control using Role Based Access Control (RBAC).
 
 ## Technologies Used
 
@@ -12,10 +14,9 @@ The Center UMS is a standalone service part of the microservices that powers the
 - **Caching**: Redis
 - **HTML to PDF**: xhtml2pdf
 
-
 ## Installation
 
-To install and run ICenta User Management Service locally, follow these steps:
+To install and run Centa User Management Service locally, follow these steps:
 
 1. **Set up the virtual environment**:
 
@@ -26,10 +27,11 @@ To install and run ICenta User Management Service locally, follow these steps:
 
 2. **Clone the repository**:
 
-	***SSH***
+   **_SSH_**
+
    ```bash
-   git clone git@github.com:codemindshub/centa_user_service.git
-   cd centa_user_service
+   git clone git@github.com:codemindshub/centa-user-service.git
+   cd centa-user-service
    ```
 
 3. **Install the dependencies**:
@@ -39,15 +41,16 @@ To install and run ICenta User Management Service locally, follow these steps:
    ```
 
 4. **Additional SetUp**:
-	- Create a Secret Key for Django
-	   ```bash
-	   python -c "import secrets; print(secrets.token_urlsafe())"
-	   ```
-	- Create a `.env` file
-	- Put the generated secret key into the `.env` file:
-		```text
-		SECRET_KEY=<put secret key here>
-		```
+
+   - Create a Secret Key for Django
+     ```bash
+     python -c "import secrets; print(secrets.token_urlsafe())"
+     ```
+   - Create a `.env` file
+   - Put the generated secret key into the `.env` file:
+     ```text
+     SECRET_KEY=<put secret key here>
+     ```
 
 5. **Run the migrations**:
 
@@ -63,7 +66,8 @@ To install and run ICenta User Management Service locally, follow these steps:
 
 ## Contributing
 
-Contributions are welcome! If you would like to contribute to InventoryWise, please follow these steps:
+Contributions are welcome! If you would like to contribute to InventoryWise,
+please follow these steps:
 
 1. Fork the repository.
 2. Create a new branch for your feature or bug fix.
@@ -72,4 +76,5 @@ Contributions are welcome! If you would like to contribute to InventoryWise, ple
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the
+[LICENSE](LICENSE) file for details.
