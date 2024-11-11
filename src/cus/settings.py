@@ -57,7 +57,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'centa_user_service.urls'
+ROOT_URLCONF = 'cus.urls'
 
 TEMPLATES = [
     {
@@ -75,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'centa_user_service.wsgi.application'
+WSGI_APPLICATION = 'cus.wsgi.application'
 
 
 # Database
