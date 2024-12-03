@@ -13,7 +13,7 @@ class CustomUserManager(BaseUserManager):
     """
     Custom manager for handling user creation and modification.
 
-    Method(s):
+    Methods:
         - create_user: Creates a new regular user.
         - create_superuser: Creates a new superuser with elevated permissions.
         - deactivate_user: Deactivates a user based on their email.
