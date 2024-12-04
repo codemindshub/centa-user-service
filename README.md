@@ -43,11 +43,14 @@ To install and run Centa User Management Service locally, follow these steps:
 4. **Additional SetUp**:
 
    - Create a Secret Key for Django
+
      ```bash
      python -c "import secrets; print(secrets.token_urlsafe())"
      ```
+
    - Create a `.env` file
    - Put the generated secret key into the `.env` file:
+
      ```text
      SECRET_KEY=<put secret key here>
      ```
