@@ -22,16 +22,17 @@ class CustomUserManager(BaseUserManager):
         password."""
         if not email:
             raise ValidationError(
-                _('The email field is required'), code='email_required'
+                _("The email field is required"), code="email_required"
             )
 
         if password is None:
             raise ValidationError(
-                _('The password field is required'), code='password_required'
+                _("The password field is required"), code="password_required"
             )
 
         email = self.normalize_email(email)
-        user = self.model(email=email, username=username, **extra_fields)
+        user = self.model(email=email, username=username)
+        user = self.set_extra_attributes(obj=user, attributes=extra_fields)
         user.set_password(password)
         user.save(using=self._db)
 
@@ -40,16 +41,16 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, email, username, password=None, **extra_fields):
         """Create and save a superuser with the given email, username, and
         password."""
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
 
         if not (
-            extra_fields.get('is_staff') and extra_fields.get('is_superuser')
+            extra_fields.get("is_staff") and extra_fields.get("is_superuser")
         ):
             raise ValidationError(
-                _('Superuser must have is_staff=True'),
-                code='superuser_not_staff',
+                _("Superuser must have is_staff=True"),
+                code="superuser_not_staff",
             )
 
         return self.create_user(email, username, password, **extra_fields)
@@ -83,17 +84,20 @@ class CustomUserManager(BaseUserManager):
         """
         user = self.get(email=email)
         user.is_active = is_active
-        user.save(using=self._db, update_fields=['is_active'])
+        user.save(using=self._db, update_fields=["is_active"])
 
     def email_does_not_exist(self, email):
         """Raises an error when the email requested does not exist.
 
         Args:
             email (str): The email that wasn't found in the database.
+
+        Raises:
+            User.DoesNotExist: Raised because the provided email does exist in
+            the list of available users in the database.
         """
-        raise ValidationError(
-            _(f'User with email: {email} does not exist.'),
-            code='email_does_not_exist',
+        raise self.model.DoesNotExist(
+            _(f"User with email: {email} does not exist.")
         )
 
     def update_user(self, email, **update_fields):
@@ -104,11 +108,40 @@ class CustomUserManager(BaseUserManager):
         """
         try:
             user = self.get(email=email)
-            for field, value in update_fields.items():
-                setattr(user, field, value)
-            user.save(using=self._db)
         except self.model.DoesNotExist as e:
             raise self.email_does_not_exist(email) from e
+        else:
+            user = self.set_extra_attributes(
+                obj=user, attributes=update_fields
+            )
+
+            user.save(using=self._db)
+
+    def set_extra_attributes(self, obj: object, attributes: dict):
+        """Updates the `obj` with the attributes provided if they exist.
+
+        obj (object): The object to set attributes for.
+        attributes (dict): Key-value pairs of the attributes to set on the
+        `obj`.
+
+        Raises:
+            AttributeError: When an attribute does exist on the `obj`.
+
+        Returns:
+            obj: The updated object when all the attributes are set correctly.
+        """
+        for attribute, value in attributes.items():
+            if hasattr(obj, attribute):  # ensure the attribute exists
+                setattr(obj, attribute, value)
+            else:
+                raise AttributeError(
+                    _(
+                        f"The attribute '{attribute}' does not exist on "
+                        f"the on the {self.model.__name__} model."
+                    )
+                )
+
+        return obj
 
 
 class User(AbstractBaseUser):
@@ -117,8 +150,8 @@ class User(AbstractBaseUser):
     class UserStation(models.TextChoices):
         """User station options."""
 
-        WAREHOUSE = 'WH', _('warehouse')
-        SHOP = 'SP', _('shop')
+        WAREHOUSE = "WH", _("warehouse")
+        SHOP = "SP", _("shop")
 
     id = models.UUIDField(
         primary_key=True, default=uuid4, editable=False, unique=True
@@ -137,10 +170,10 @@ class User(AbstractBaseUser):
     middlename = models.CharField(max_length=255, blank=True)
     lastname = models.CharField(max_length=255, blank=False, null=False)
     role = models.OneToOneField(
-        'Role', on_delete=models.SET_NULL, null=True, blank=True
+        "Role", on_delete=models.SET_NULL, null=True, blank=True
     )
     organisation = models.OneToOneField(
-        'Organisation', on_delete=models.CASCADE, null=True, blank=True
+        "Organisation", on_delete=models.CASCADE, null=True, blank=True
     )
     user_station = models.CharField(
         max_length=2, choices=UserStation, blank=False, null=False
@@ -154,25 +187,25 @@ class User(AbstractBaseUser):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = "username"
     REQUIRED_FIELDS = [
-        'email',
-        'firstname',
-        'lastname',
-        'role',
-        'user_station',
+        "email",
+        "firstname",
+        "lastname",
+        "role",
+        "user_station",
     ]
 
     class Meta:
         """Metadata for the users model."""
 
-        db_table = 'users'
-        indexes = [models.Index(fields=['id'])]
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
+        db_table = "users"
+        indexes = [models.Index(fields=["id"])]
+        verbose_name = "User"
+        verbose_name_plural = "Users"
 
     def __str__(self):
-        return f'{self.username} with email: {self.email}'
+        return f"{self.username} with email: {self.email}"
 
 
 class UserProfile(models.Model):
@@ -184,12 +217,12 @@ class UserProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, null=False, blank=False
     )
-    avatar = models.ImageField(upload_to='')
+    avatar = models.ImageField(upload_to="")
 
     class Meta:
         """Metadata for the user profiles model."""
 
-        db_table = 'profiles'
+        db_table = "profiles"
 
 
 class Organisation(models.Model):
@@ -205,7 +238,7 @@ class Organisation(models.Model):
         primary_key=True, default=uuid4, editable=False, unique=True
     )
     name = models.CharField(max_length=255, blank=False, null=False)
-    logo = models.ImageField(upload_to='', null=True, blank=True)
+    logo = models.ImageField(upload_to="", null=True, blank=True)
     address = models.CharField(max_length=255, blank=True)
     contact = models.CharField(max_length=255, blank=True)
     email = models.EmailField(max_length=255, blank=True)
@@ -214,7 +247,7 @@ class Organisation(models.Model):
         on_delete=models.CASCADE,
         null=False,
         blank=False,
-        related_name='owner',
+        related_name="owner",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -222,7 +255,7 @@ class Organisation(models.Model):
     class Meta:
         """Metadata for the organisations model."""
 
-        db_table = 'organisations'
+        db_table = "organisations"
 
     def __str__(self):
         return self.name
@@ -247,7 +280,7 @@ class Role(models.Model):
     class Meta:
         """Metadata for the roles model."""
 
-        db_table = 'roles'
+        db_table = "roles"
 
     def __str__(self):
         return self.name
@@ -267,7 +300,7 @@ class Permission(models.Model):
     class Meta:
         """Metadata for the permissions model."""
 
-        db_table = 'permissions'
+        db_table = "permissions"
 
     def __str__(self):
         return self.name
@@ -285,8 +318,8 @@ class RolePermission(models.Model):
     class Meta:
         """Metadata for the role permissions model."""
 
-        db_table = 'role_permissions'
-        unique_together = ('role', 'permission')
+        db_table = "role_permissions"
+        unique_together = ("role", "permission")
 
     def __str__(self):
-        return f'{self.role.name} - {self.permission.name}'
+        return f"{self.role.name} - {self.permission.name}"
