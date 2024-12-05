@@ -137,7 +137,7 @@ class CustomUserManager(BaseUserManager):
                 raise AttributeError(
                     _(
                         f"The attribute '{attribute}' does not exist on "
-                        f"the on the {self.model.__name__} model."
+                        f"the {self.model.__name__} model."
                     )
                 )
 
