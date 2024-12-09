@@ -5,6 +5,13 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from .validators import (
+    UserModelValidator,
+    OrgModelValidator,
+    RoleModelValidator,
+    UserProfileValidator
+)
+
 
 class CustomUserManager(BaseUserManager):
     """Custom manager for handling user creation and modification.
@@ -33,7 +40,9 @@ class CustomUserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, username=username)
         user = self.set_extra_attributes(obj=user, attributes=extra_fields)
+        UserModelValidator.password_validator(password, user=user)
         user.set_password(password)
+        user.full_clean()
         user.save(using=self._db)
 
         return user
@@ -157,7 +166,16 @@ class User(AbstractBaseUser):
         primary_key=True, default=uuid4, editable=False, unique=True
     )
     username = models.CharField(
-        max_length=255, unique=True, null=False, blank=False
+        max_length=128,
+        unique=True,
+        null=False,
+        blank=False,
+        validators=[
+            lambda username: UserModelValidator.username_validator(
+                username, min_length=4, max_length=128
+            ),
+        ],
+        help_text=_("Your unique username for CentaIMS")
     )
     email = models.EmailField(
         max_length=255,
@@ -165,23 +183,39 @@ class User(AbstractBaseUser):
         blank=False,
         null=False,
     )
-    password = models.CharField(max_length=255, blank=False, null=False)
-    firstname = models.CharField(max_length=255)
+    password = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text=_(
+            "A secure password with at least one special character, uppercase letter, and number."
+        )
+    )
+    firstname = models.CharField(max_length=255, blank=False, null=False)
     middlename = models.CharField(max_length=255, blank=True)
     lastname = models.CharField(max_length=255, blank=False, null=False)
     role = models.OneToOneField(
-        "Role", on_delete=models.SET_NULL, null=True, blank=True
+        "Role",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="user_role",
+        validators=[UserModelValidator.role_validator]
     )
     organisation = models.OneToOneField(
-        "Organisation", on_delete=models.CASCADE, null=True, blank=True
+        "Organisation", on_delete=models.CASCADE, null=True, blank=True, related_name="user_org"
     )
     user_station = models.CharField(
-        max_length=2, choices=UserStation, blank=False, null=False
+        max_length=2,
+        choices=UserStation,
+        blank=False,
+        null=False,
+        validators=[UserModelValidator.user_station_validator]
     )
     station_id = models.UUIDField(blank=False, null=True)
     is_active = models.BooleanField(default=True, blank=False)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False, blank=False)
+    is_superuser = models.BooleanField(default=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -215,7 +249,11 @@ class UserProfile(models.Model):
         primary_key=True, default=uuid4, editable=False, unique=True
     )
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, null=False, blank=False
+        User,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+        validators=[UserProfileValidator.user_validator]
     )
     avatar = models.ImageField(upload_to="")
 
@@ -237,7 +275,13 @@ class Organisation(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid4, editable=False, unique=True
     )
-    name = models.CharField(max_length=255, blank=False, null=False)
+    name = models.CharField(
+        max_length=125,
+        blank=False,
+        null=False,
+        validators=[
+            lambda name: OrgModelValidator.name_validator(name, max_length=125),]
+    )
     logo = models.ImageField(upload_to="", null=True, blank=True)
     address = models.CharField(max_length=255, blank=True)
     contact = models.CharField(max_length=255, blank=True)
@@ -248,6 +292,7 @@ class Organisation(models.Model):
         null=False,
         blank=False,
         related_name="owner",
+        validators=[OrgModelValidator.owner_validator]
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -255,7 +300,7 @@ class Organisation(models.Model):
     class Meta:
         """Metadata for the organisations model."""
 
-        db_table = "organisations"
+        db_table = "organisation"
 
     def __str__(self):
         return self.name
@@ -272,7 +317,12 @@ class Role(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid4, editable=False, unique=True
     )
-    name = models.CharField(max_length=255, null=False, blank=False)
+    name = models.CharField(
+        max_length=125,
+        null=False,
+        blank=False,
+        validators=[RoleModelValidator.name_validator]
+    )
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -284,6 +334,10 @@ class Role(models.Model):
 
     def __str__(self):
         return self.name
+
+    def full_clean(self):
+        RoleModelValidator.name_validator(self.name)
+        super().full_clean()
 
 
 class Permission(models.Model):
