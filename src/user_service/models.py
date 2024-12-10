@@ -170,11 +170,7 @@ class User(AbstractBaseUser):
         unique=True,
         null=False,
         blank=False,
-        validators=[
-            lambda username: UserModelValidator.username_validator(
-                username, min_length=4, max_length=128
-            ),
-        ],
+        validators=[UserModelValidator.username_validator],
         help_text=_("Your unique username for CentaIMS")
     )
     email = models.EmailField(
@@ -279,8 +275,7 @@ class Organisation(models.Model):
         max_length=125,
         blank=False,
         null=False,
-        validators=[
-            lambda name: OrgModelValidator.name_validator(name, max_length=125),]
+        validators=[OrgModelValidator.name_validator,]
     )
     logo = models.ImageField(upload_to="", null=True, blank=True)
     address = models.CharField(max_length=255, blank=True)
@@ -292,7 +287,7 @@ class Organisation(models.Model):
         null=False,
         blank=False,
         related_name="owner",
-        validators=[OrgModelValidator.owner_validator]
+        validators=[OrgModelValidator.owner_validator,]
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -300,7 +295,7 @@ class Organisation(models.Model):
     class Meta:
         """Metadata for the organisations model."""
 
-        db_table = "organisation"
+        db_table = "organisations"
 
     def __str__(self):
         return self.name

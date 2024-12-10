@@ -89,6 +89,7 @@ class UserModelValidator:
 
         CommonPasswordValidator().validate(password, user=user)
 
+    @staticmethod
     def user_station_validator(user_station, allowed_stations=("WH", "SP")):
         """
         Validates that the user's station is in the list of allowed stations.
@@ -106,6 +107,7 @@ class UserModelValidator:
                 params={"values": ", ".join(allowed_stations)}
             )
 
+    @staticmethod
     def role_validator(role):
         """
         Validates a user's role field based on the associated User model.
@@ -120,10 +122,10 @@ class UserModelValidator:
         from .models import User
         try:
             role_field = User._meta.get_field("role")
-        except FieldDoesNotExist:
+        except FieldDoesNotExist as e:
             raise ValidationError(
                 _("Role field is not defined on the User model.")
-            )
+            ) from e
 
         if role is None and not role_field.null:
             raise ValidationError(
@@ -197,14 +199,22 @@ class OrgModelValidator:
 
         try:
             owner_field = Organisation._meta.get_field("owner")
-        except FieldDoesNotExist:
+        except FieldDoesNotExist as e:
             raise ValidationError(
                 _("owner field is not defined on the Organisation model")
-            )
+            ) from e
 
         user_model = owner_field.related_model
 
-        if owner and not isinstance(owner, user_model):
+        if not isinstance(owner, user_model):
+            try:
+                owner = user_model.objects.get(id=owner)
+            except user_model.DoesNotExist as e:
+                raise ValidationError(
+                    _("User with the given ID does not exist")
+                ) from e
+
+        if not isinstance(owner, user_model):
             raise ValidationError(
                 _("Invalid Organisation owner type. Expected %(expected)s, got %(actual)s"),
                 params={
@@ -285,10 +295,10 @@ class UserProfileValidator:
 
         try:
             user_field = UserProfile._meta.get_field("user")
-        except FieldDoesNotExist:
+        except FieldDoesNotExist as e:
             raise ValidationError(
-                _("user field is not defined on the UserProfiel model")
-            )
+                _("user field is not defined on the UserProfile model")
+            ) from e
 
         user_model = user_field.related_model
 
